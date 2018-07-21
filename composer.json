@@ -1,0 +1,28 @@
+{
+    "name": "zualex/memcached-client",
+    "description": "Simple PHP memcached client",
+    "type": "library",
+    "require" : {
+        "php": ">=7.2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "zualex",
+            "email": "azubarev32@yandex.ru"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+          "zualex\\Memcached\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "zualex\\Memcached\\tests\\": "tests/"
+        }
+    }
+}
