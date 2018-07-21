@@ -7,9 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 class ClientTest extends TestCase
 {
-    const DEFAULT_PORT = 11211;
-    const DEFAULT_WEIGHT = 0;
-
     public function testAddServer()
     {
         $m = new Client;
@@ -20,8 +17,8 @@ class ClientTest extends TestCase
             'weight' => 100,
         ]];
 
-        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
         $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
 
         $this->assertEquals(true, $resultAdd);
         $this->assertEquals($expected, $m->getServerList());
@@ -33,12 +30,12 @@ class ClientTest extends TestCase
         $m->addServer('test.host');
         $expected = [[
             'host' => 'test.host',
-            'port' => self::DEFAULT_PORT,
-            'weight' => self::DEFAULT_WEIGHT,
+            'port' => $m::DEFAULT_PORT,
+            'weight' => $m::DEFAULT_WEIGHT,
         ]];
 
-        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
         $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
 
         $this->assertEquals($expected, $m->getServerList());
     }
@@ -50,8 +47,8 @@ class ClientTest extends TestCase
         $m->addServer('test2.host');
         $serverList = $m->getServerList();
 
-        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
         $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
 
         $this->assertEquals(2, count($serverList));
         $this->assertEquals('test.host', $serverList[0]['host']);
@@ -65,11 +62,45 @@ class ClientTest extends TestCase
         $resultAddFail = $m->addServer('test.host');
         $serverList = $m->getServerList();
 
-        $this->assertEquals($m::CODE_FAILURE, $m->getResultCode());
         $this->assertEquals($m::MESSAGE_SERVER_DUPLICATE, $m->getResultMessage());
+        $this->assertEquals($m::CODE_FAILURE, $m->getResultCode());
 
         $this->assertEquals(true, $resultAddOk);
         $this->assertEquals(false, $resultAddFail);
         $this->assertEquals(1, count($serverList));
+    }
+
+    public function testAddServers()
+    {
+        $servers = [
+            ['mem.domain.com'],
+            ['mem.domain.com'],        // duplicate
+            ['mem1.domain.com', 11222, 20],
+            ['mem2.domain.com', 11223, 20],
+        ];
+        $m = new Client;
+        $result = $m->addServers($servers);
+        $serverList = $m->getServerList();
+
+        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
+
+        $this->assertEquals(true, $result);
+        $this->assertEquals(3, count($serverList));
+        $this->assertEquals($m::DEFAULT_PORT, $serverList[0]['port']);
+        $this->assertEquals($m::DEFAULT_WEIGHT, $serverList[0]['weight']);
+    }
+
+    public function testAddServersEmpty()
+    {
+        $m = new Client;
+        $result = $m->addServers([]);
+        $serverList = $m->getServerList();
+
+        $this->assertEquals($m::MESSAGE_NOT_FOUND_SERVERS, $m->getResultMessage());
+        $this->assertEquals($m::CODE_FAILURE, $m->getResultCode());
+
+        $this->assertEquals(false, $result);
+        $this->assertEquals(0, count($serverList));
     }
 }
