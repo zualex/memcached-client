@@ -8,15 +8,14 @@ class Client
      * Memcached constants
      * See: http://php.net/manual/en/memcached.constants.php
      */
-    const CODE_SUCCESS = 0;                  // MEMCACHED_SUCCESS
-    const CODE_FAILURE = 1;                  // MEMCACHED_FAILURE
+    const RES_SUCCESS = 0;                  // The operation was successful.
+    const RES_FAILURE = 1;                  // The operation failed in some fashion.
+    const RES_CONNECTION_SOCKET_CREATE_FAILURE = 11;  // Failed to create network socket.
 
     /**
      * Result messages of the last operation
      */
-    const MESSAGE_NOTHING             = '';
-    const MESSAGE_NOT_FOUND_SERVERS   = 'Not found servers.';
-    const MESSAGE_CONNECT_SERVER_FAIL = 'Connect server fail.';
+    const MESSAGE_NOTHING = '';
 
     /**
      * Default params
@@ -137,7 +136,34 @@ class Client
             'port' => ($port !== null) ? $port : self::DEFAULT_PORT,
         ];
 
-        $this->setResultCode(self::CODE_SUCCESS);
+        return $this->connect();
+    }
+
+    /**
+     * Connect to memcached server
+     *
+     * @return  boolean
+     */
+    protected function connect()
+    {
+        $result = false;
+        $server = $this->getServer();
+        $host   = $server['host'];
+        $port   = $server['port'];
+
+        $error = 0;
+        $errstr = '';
+        $result = @fsockopen($host, $port, $error, $errstr);
+
+        if ($result === false) {
+            $this->resultCode = self::RES_CONNECTION_SOCKET_CREATE_FAILURE;
+            $this->resultMessage = "$errstr ($error)";
+            return false;
+        }
+
+        $this->setSocket($result);
+
+        $this->setResultCode(self::RES_SUCCESS);
         $this->setResultMessage(self::MESSAGE_NOTHING);
         return true;
     }
