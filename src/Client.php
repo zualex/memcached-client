@@ -4,6 +4,30 @@ namespace zualex\Memcached;
 
 class Client
 {
+    // Memcached constants
+    // See: http://php.net/manual/en/memcached.constants.php
+
+    const CODE_SUCCESS = 0;                  // MEMCACHED_SUCCESS
+    const CODE_FAILURE = 1;                  // MEMCACHED_FAILURE
+
+    // Messages
+    const MESSAGE_NOTHING = '';
+    const MESSAGE_SERVER_DUPLICATE = 'Server duplicate.';
+
+    /**
+     * Result code of the last operation
+     * 
+     * @var int
+     */
+    protected $resultCode;
+
+    /**
+     * Message describing the result of the last operation
+     * 
+     * @var int
+     */
+    protected $resultMessage;
+
     /**
      * $server list of the servers in the pool
      *
@@ -19,6 +43,46 @@ class Client
      * @var array
      */
     protected $serverList = array();
+
+    /**
+     * Return the result code of the last operation
+     * 
+     * @return int
+     */
+    public function getResultCode()
+    {
+        return $this->resultCode;
+    }
+
+    /**
+     * Set result code of the last operation
+     * 
+     * @param int $codeInt
+     */
+    public function setResultCode($codeInt)
+    {
+        $this->resultCode = $codeInt;
+    }
+
+    /**
+     * Return the message describing the result of the last operation
+     * 
+     * @return string
+     */
+    public function getResultMessage()
+    {
+        return $this->resultMessage;
+    }
+
+    /**
+     * Set message describing the result of the last operation
+     * 
+     * @param string $codeInt
+     */
+    public function setResultMessage($message)
+    {
+        $this->resultMessage = $message;
+    }
 
     /**
      * Get the list of the servers in the pool
@@ -41,6 +105,8 @@ class Client
     public function addServer($host, $port = 11211, $weight = 0)
     {
         if ($this->isServerDuplicate($host, $port, $weight)) {
+            $this->setResultCode(self::CODE_FAILURE);
+            $this->setResultMessage(self::MESSAGE_SERVER_DUPLICATE);
             return false;
         }
 
@@ -51,6 +117,8 @@ class Client
             'weight'    => $weight,
         ];
 
+        $this->setResultCode(self::CODE_SUCCESS);
+        $this->setResultMessage(self::MESSAGE_NOTHING);
         return true;
     }
 

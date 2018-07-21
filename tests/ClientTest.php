@@ -20,6 +20,9 @@ class ClientTest extends TestCase
             'weight' => 100,
         ]];
 
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
+        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+
         $this->assertEquals(true, $resultAdd);
         $this->assertEquals($expected, $m->getServerList());
     }
@@ -34,6 +37,9 @@ class ClientTest extends TestCase
             'weight' => self::DEFAULT_WEIGHT,
         ]];
 
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
+        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+
         $this->assertEquals($expected, $m->getServerList());
     }
 
@@ -43,6 +49,9 @@ class ClientTest extends TestCase
         $m->addServer('test.host');
         $m->addServer('test2.host');
         $serverList = $m->getServerList();
+
+        $this->assertEquals($m::CODE_SUCCESS, $m->getResultCode());
+        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
 
         $this->assertEquals(2, count($serverList));
         $this->assertEquals('test.host', $serverList[0]['host']);
@@ -55,6 +64,9 @@ class ClientTest extends TestCase
         $resultAddOk = $m->addServer('test.host');
         $resultAddFail = $m->addServer('test.host');
         $serverList = $m->getServerList();
+
+        $this->assertEquals($m::CODE_FAILURE, $m->getResultCode());
+        $this->assertEquals($m::MESSAGE_SERVER_DUPLICATE, $m->getResultMessage());
 
         $this->assertEquals(true, $resultAddOk);
         $this->assertEquals(false, $resultAddFail);
