@@ -8,19 +8,27 @@ class Client
      * Memcached constants
      * See: http://php.net/manual/en/memcached.constants.php
      */
-    const RES_SUCCESS = 0;                  // The operation was successful.
-    const RES_FAILURE = 1;                  // The operation failed in some fashion.
+    const RES_SUCCESS          = 0;         // The operation was successful.
+    const RES_FAILURE          = 1;         // The operation failed in some fashion.
+    const RES_BAD_KEY_PROVIDED = 33;        // Bad key.
     const RES_CONNECTION_SOCKET_CREATE_FAILURE = 11;  // Failed to create network socket.
 
     /**
      * Result messages of the last operation
      */
-    const MESSAGE_NOTHING = '';
+    const MESSAGE_NOTHING          = '';
+    const MESSAGE_KEY_NOT_STRING   = 'Key is not string.';
+    const MESSAGE_KEY_MAX_LENGTH   = 'The length limit of a key 250 characters.';
+    const MESSAGE_KEY_BAD_CHARS    = 'Key include control characters or whitespace. Allow a-Z 0-9 _';
+    const MESSAGE_SET_FAIL         = 'Set fail.';
+    const MESSAGE_GET_FAIL         = 'Get fail.';
+    const MESSAGE_NOT_FOUND_SOCKET = 'Not found socket.';
 
     /**
      * Default params
      */
-    const DEFAULT_PORT = 11211;
+    const DEFAULT_PORT           = 11211;
+    const DEFAULT_MAX_KEY_LENGTH = 250;
 
     /**
      * Result code of the last operation
@@ -140,6 +148,71 @@ class Client
     }
 
     /**
+     * Store an item
+     *
+     * @param   string  $key
+     * @param   mixed   $value
+     * @param   int     $expiration
+     * @return  boolean
+     */
+    public function set($key, $value, $expiration = 0)
+    {
+        $prepareValue = $this->prepareValueForSocket($value);
+        $lenValue = strlen($prepareValue);
+        if ($this->keyIsValid($key) === false) {
+            return false;
+        }
+
+        $t = $this->socketQuery("set {$key} 0 {$expiration} {$lenValue}");
+        $t2= $this->socketQuery($prepareValue);
+        $result = $this->socketReadLine();
+
+        if ($result !== 'STORED') {
+            $this->setResultCode(self::RES_FAILURE);
+            $this->setResultMessage(self::MESSAGE_SET_FAIL);
+            return false;
+        }
+
+        $this->setResultCode(self::RES_SUCCESS);
+        $this->setResultMessage(self::MESSAGE_NOTHING);
+        return true;
+    }
+
+    /**
+     * Retrieve an item
+     *
+     * @param   string  $key
+     * @return  mixed
+     */
+    public function get($key)
+    {
+        if ($this->keyIsValid($key) === false) {
+            return false;
+        }
+
+        $this->socketQuery("get {$key}");
+        $resultQuery = $this->socketReadLine();
+
+        if (is_null($resultQuery) || substr($resultQuery, 0, 5) !== 'VALUE') {
+            $this->setResultCode(self::RES_FAILURE);
+            $this->setResultMessage(self::MESSAGE_GET_FAIL);
+            return false;
+        }
+
+        $result = '';
+        $line = '';
+        while ($line !== 'END') {
+            $result .= $line;
+            $line = $this->socketReadLine();
+        }
+
+        $this->setResultCode(self::RES_SUCCESS);
+        $this->setResultMessage(self::MESSAGE_NOTHING);
+
+        return $this->prepareValueForApp($result);
+    }
+
+    /**
      * Connect to memcached server
      *
      * @return  boolean
@@ -166,5 +239,93 @@ class Client
         $this->setResultCode(self::RES_SUCCESS);
         $this->setResultMessage(self::MESSAGE_NOTHING);
         return true;
+    }
+
+    /**
+     * Prepare value before query socket
+     * 
+     * @param  string $value
+     * @return string
+     */
+    protected function prepareValueForSocket($value)
+    {
+        return serialize($value);
+    }
+
+    /**
+     * Prepare value for application
+     * 
+     * @param  string $value
+     * @return string
+     */
+    protected function prepareValueForApp($value)
+    {
+        return unserialize($value);
+    }
+
+    /**
+     * Check key
+     * 
+     * @param  sting $key
+     * @return boolean
+     */
+    protected function keyIsValid($key)
+    {
+        if (is_string($key) === false) {
+            $this->setResultCode(self::RES_BAD_KEY_PROVIDED);
+            $this->setResultMessage(self::MESSAGE_KEY_NOT_STRING);
+            return false;
+        }
+
+        if (strlen($key) > self::DEFAULT_MAX_KEY_LENGTH) {
+            $this->setResultCode(self::RES_BAD_KEY_PROVIDED);
+            $this->setResultMessage(self::MESSAGE_KEY_MAX_LENGTH);
+            return false;
+        }
+
+        if (preg_match('/[^\w]/', $key)) {
+            $this->setResultCode(self::RES_BAD_KEY_PROVIDED);
+            $this->setResultMessage(self::MESSAGE_KEY_BAD_CHARS);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Send data to socket
+     * 
+     * @param  string $query
+     * @return boolean
+     */
+    protected function socketQuery($query)
+    {
+        $socket = $this->getSocket();
+        if ($socket === null) {
+            $this->setResultCode(self::RES_FAILURE);
+            $this->setResultMessage(self::MESSAGE_NOT_FOUND_SOCKET);
+            return false;
+        }
+
+        fwrite($socket, $query . "\r\n");
+
+        return true;
+    }
+
+    /**
+     * Get data from socket
+     * 
+     * @return string
+     */
+    protected function socketReadLine()
+    {
+        $socket = $this->getSocket();
+        if ($socket === null) {
+            $this->setResultCode(self::RES_FAILURE);
+            $this->setResultMessage(self::MESSAGE_NOT_FOUND_SOCKET);
+            return false;
+        }
+
+        return trim(fgets($socket));
     }
 }
