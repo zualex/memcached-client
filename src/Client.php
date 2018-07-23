@@ -11,6 +11,7 @@ class Client
     const RES_SUCCESS          = 0;         // The operation was successful.
     const RES_FAILURE          = 1;         // The operation failed in some fashion.
     const RES_BAD_KEY_PROVIDED = 33;        // Bad key.
+    const RES_NOTFOUND         = 16;        // Item with this key was not found (with "get" operation or "cas" operations).
     const RES_CONNECTION_SOCKET_CREATE_FAILURE = 11;  // Failed to create network socket.
 
     /**
@@ -23,6 +24,7 @@ class Client
     const MESSAGE_SET_FAIL         = 'Set fail.';
     const MESSAGE_GET_FAIL         = 'Get fail.';
     const MESSAGE_DELETE_FAIL      = 'Delete fail.';
+    const MESSAGE_KEY_NOT_FOUND    = 'Key not exists.';
     const MESSAGE_NOT_FOUND_SOCKET = 'Not found socket.';
 
     /**
@@ -195,8 +197,8 @@ class Client
         $resultQuery = $this->socketReadLine();
 
         if (is_null($resultQuery) || substr($resultQuery, 0, 5) !== 'VALUE') {
-            $this->setResultCode(self::RES_FAILURE);
-            $this->setResultMessage(self::MESSAGE_GET_FAIL);
+            $this->setResultCode(self::RES_NOTFOUND);
+            $this->setResultMessage(self::MESSAGE_KEY_NOT_FOUND);
             return false;
         }
 

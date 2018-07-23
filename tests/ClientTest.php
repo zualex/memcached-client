@@ -9,6 +9,7 @@ class ClientTest extends TestCase
 {
     const HOST = 'localhost';
     const PORT = 11211;
+    const KEY_TEST = 'my_key';
 
     protected function getObject()
     {
@@ -16,6 +17,12 @@ class ClientTest extends TestCase
         $m->setServer(self::HOST, self::PORT);
 
         return $m;
+    }
+
+    protected function tearDown()
+    {
+        $m = $this->getObject();
+        $m->delete(self::KEY_TEST);
     }
 
     public function testSetServer()
@@ -62,25 +69,35 @@ class ClientTest extends TestCase
     public function testSet()
     {
         $m = $this->getObject();
-        $result = $m->set('my_key', 'my_value');
+        $result = $m->set(self::KEY_TEST, 'my_value');
 
         $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
         $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
 
         $this->assertEquals(true, $result);
-        $this->assertEquals('my_value', $m->get('my_key'));
+        $this->assertEquals('my_value', $m->get(self::KEY_TEST));
     }
 
     public function testSetArray()
     {
         $m = $this->getObject();
-        $result = $m->set('my_key', ['key' => 1]);
+        $result = $m->set(self::KEY_TEST, ['key' => 1]);
 
         $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
         $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
 
         $this->assertEquals(true, $result);
-        $this->assertEquals(['key' => 1], $m->get('my_key'));
+        $this->assertEquals(['key' => 1], $m->get(self::KEY_TEST));
+    }
+
+    public function testGetNotExistKey()
+    {
+        $m = $this->getObject();
+        $result = $m->get(self::KEY_TEST);
+
+        $this->assertEquals($m::MESSAGE_KEY_NOT_FOUND, $m->getResultMessage());
+        $this->assertEquals($m::RES_NOTFOUND, $m->getResultCode());
+        $this->assertEquals(false, $result);
     }
 
     public function testKeyMaxLength()
@@ -121,20 +138,20 @@ class ClientTest extends TestCase
     public function testDelete()
     {
         $m = $this->getObject();
-        $m->set('my_key', 'my_value');
-        $result = $m->delete('my_key');
+        $m->set(self::KEY_TEST, 'my_value');
+        $result = $m->delete(self::KEY_TEST);
 
         $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
         $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
 
         $this->assertEquals(true, $result);
-        $this->assertEquals(null, $m->get('my_key'));
+        $this->assertEquals(null, $m->get(self::KEY_TEST));
     }
 
     public function testDeleteFail()
     {
         $m = $this->getObject();
-        $result = $m->delete('my_key');
+        $result = $m->delete(self::KEY_TEST);
 
         $this->assertEquals($m::MESSAGE_DELETE_FAIL, $m->getResultMessage());
         $this->assertEquals($m::RES_FAILURE, $m->getResultCode());
