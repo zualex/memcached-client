@@ -30,7 +30,7 @@ class Connection implements ConnectionInterface
 
     /**
      * Get socket
-     * 
+     *
      * @return string
      */
     public function getSocket()
@@ -40,7 +40,7 @@ class Connection implements ConnectionInterface
 
     /**
      * Set socket
-     * 
+     *
      * @param resource $socket
      */
     public function setSocket($socket)
@@ -50,7 +50,7 @@ class Connection implements ConnectionInterface
 
     /**
      * Get data from socket
-     * 
+     *
      * @return string
      */
     public function readLine()
@@ -60,7 +60,7 @@ class Connection implements ConnectionInterface
 
     /**
      * Send data to socket
-     * 
+     *
      * @param  string $query
      * @return boolean
      */

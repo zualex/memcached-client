@@ -15,7 +15,7 @@ class Client
     const RES_SUCCESS          = 0;         // The operation was successful.
     const RES_FAILURE          = 1;         // The operation failed in some fashion.
     const RES_BAD_KEY_PROVIDED = 33;        // Bad key.
-    const RES_NOTFOUND         = 16;        // Item with this key was not found (with "get" operation or "cas" operations).
+    const RES_NOTFOUND         = 16;        // Item with this key was not found.
     const RES_CONNECTION_SOCKET_CREATE_FAILURE = 11;  // Failed to create network socket.
 
     /**
@@ -47,14 +47,14 @@ class Client
 
     /**
      * Result code of the last operation
-     * 
+     *
      * @var int
      */
     protected $resultCode;
 
     /**
      * Message describing the result of the last operation
-     * 
+     *
      * @var int
      */
     protected $resultMessage;
@@ -63,7 +63,7 @@ class Client
      * Show server in pool
      *
      * Example: ['host' => $host, 'port' => $port]
-     * 
+     *
      * @var array
      */
     protected $server = [];
@@ -77,7 +77,7 @@ class Client
 
     /**
      * Return connection
-     * 
+     *
      * @return ConnectionInterface
      */
     public function getConnection()
@@ -87,7 +87,7 @@ class Client
 
     /**
      * Set connection class
-     * 
+     *
      * @param ConnectionInterface $connection
      */
     public function setConnection(ConnectionInterface $connection)
@@ -97,7 +97,7 @@ class Client
 
     /**
      * Return the result code of the last operation
-     * 
+     *
      * @return int
      */
     public function getResultCode()
@@ -107,7 +107,7 @@ class Client
 
     /**
      * Set result code of the last operation
-     * 
+     *
      * @param int $codeInt
      */
     public function setResultCode($codeInt)
@@ -117,7 +117,7 @@ class Client
 
     /**
      * Return the message describing the result of the last operation
-     * 
+     *
      * @return string
      */
     public function getResultMessage()
@@ -127,7 +127,7 @@ class Client
 
     /**
      * Set message describing the result of the last operation
-     * 
+     *
      * @param string $codeInt
      */
     public function setResultMessage($message)
@@ -137,7 +137,7 @@ class Client
 
     /**
      * Get the list of the servers in the pool
-     * 
+     *
      * @return array
      */
     public function getServer()
@@ -270,7 +270,7 @@ class Client
 
     /**
      * Prepare value before query connection
-     * 
+     *
      * @param  string $value
      * @return string
      */
@@ -281,7 +281,7 @@ class Client
 
     /**
      * Prepare value for application
-     * 
+     *
      * @param  string $value
      * @return string
      */
@@ -292,7 +292,7 @@ class Client
 
     /**
      * Check key
-     * 
+     *
      * @param  sting $key
      * @return boolean
      */

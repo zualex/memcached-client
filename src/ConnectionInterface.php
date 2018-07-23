@@ -2,7 +2,6 @@
 
 namespace zualex\Memcached;
 
-
 interface ConnectionInterface
 {
     public function setSocket($socket);
