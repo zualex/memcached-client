@@ -1,0 +1,7 @@
+language: php
+
+php:
+  - 7.2
+
+script:
+  - $COMPOSER_BIN_DIR/phpunit
