@@ -38,6 +38,14 @@ class Client
     const DEFAULT_MAX_KEY_LENGTH = 250;
 
     /**
+     * Commands
+     */
+    const COMMAND_END     = 'END';
+    const COMMAND_VALUE   = 'VALUE';
+    const COMMAND_STORED  = 'STORED';
+    const COMMAND_DELETED = 'DELETED';
+
+    /**
      * Result code of the last operation
      * 
      * @var int
@@ -187,7 +195,7 @@ class Client
         $connection->write($prepareValue);
         $result = $connection->readLine();
 
-        if ($result !== 'STORED') {
+        if ($result !== self::COMMAND_STORED) {
             $this->setResultCode(self::RES_FAILURE);
             $this->setResultMessage(self::MESSAGE_SET_FAIL);
             return false;
@@ -214,7 +222,7 @@ class Client
         $connection->write("get {$key}");
         $resultQuery = $connection->readLine();
 
-        if (is_null($resultQuery) || substr($resultQuery, 0, 5) !== 'VALUE') {
+        if (is_null($resultQuery) || substr($resultQuery, 0, 5) !== self::COMMAND_VALUE) {
             $this->setResultCode(self::RES_NOTFOUND);
             $this->setResultMessage(self::MESSAGE_KEY_NOT_FOUND);
             return false;
@@ -222,7 +230,7 @@ class Client
 
         $result = '';
         $line = '';
-        while ($line !== 'END') {
+        while ($line !== self::COMMAND_END) {
             $result .= $line;
             $line = $connection->readLine();
         }
@@ -249,7 +257,7 @@ class Client
         $connection->write("delete {$key}");
         $result = $connection->readLine();
 
-        if ($result !== 'DELETED') {
+        if ($result !== self::COMMAND_DELETED) {
             $this->setResultCode(self::RES_FAILURE);
             $this->setResultMessage(self::MESSAGE_DELETE_FAIL);
             return false;
