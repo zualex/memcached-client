@@ -2,6 +2,10 @@
 
 namespace zualex\Memcached;
 
+use Exception;
+use zualex\Memcached\Connection;
+use zualex\Memcached\ConnectionInterface;
+
 class Client
 {
     /**
@@ -57,11 +61,31 @@ class Client
     protected $server = [];
 
     /**
-     * Socket connect
+     * Connection
      *
-     * @var resource
+     * @var Connection
      */
-    protected $socket;
+    protected $connection;
+
+    /**
+     * Return connection
+     * 
+     * @return ConnectionInterface
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Set connection class
+     * 
+     * @param ConnectionInterface $connection
+     */
+    public function setConnection(ConnectionInterface $connection)
+    {
+        $this->connection = $connection;
+    }
 
     /**
      * Return the result code of the last operation
@@ -104,26 +128,6 @@ class Client
     }
 
     /**
-     * Get socket
-     * 
-     * @return string
-     */
-    public function getSocket()
-    {
-        return $this->socket;
-    }
-
-    /**
-     * Set socket
-     * 
-     * @param resource $socket
-     */
-    public function setSocket($socket)
-    {
-        $this->socket = $socket;
-    }
-
-    /**
      * Get the list of the servers in the pool
      * 
      * @return array
@@ -147,7 +151,19 @@ class Client
             'port' => ($port !== null) ? $port : self::DEFAULT_PORT,
         ];
 
-        return $this->connect();
+        try {
+            $connection = new Connection($this->server['host'], $this->server['port']);
+        } catch (Exception $e) {
+            $this->resultCode = self::RES_CONNECTION_SOCKET_CREATE_FAILURE;
+            $this->resultMessage = $e->getMessage();
+            return false;
+        }
+
+        $this->setConnection($connection);
+
+        $this->setResultCode(self::RES_SUCCESS);
+        $this->setResultMessage(self::MESSAGE_NOTHING);
+        return true;
     }
 
     /**
@@ -160,15 +176,16 @@ class Client
      */
     public function set($key, $value, $expiration = 0)
     {
-        $prepareValue = $this->prepareValueForSocket($value);
+        $prepareValue = $this->prepareValueForConnection($value);
         $lenValue = strlen($prepareValue);
         if ($this->keyIsValid($key) === false) {
             return false;
         }
 
-        $t = $this->socketQuery("set {$key} 0 {$expiration} {$lenValue}");
-        $t2= $this->socketQuery($prepareValue);
-        $result = $this->socketReadLine();
+        $connection = $this->getConnection();
+        $connection->write("set {$key} 0 {$expiration} {$lenValue}");
+        $connection->write($prepareValue);
+        $result = $connection->readLine();
 
         if ($result !== 'STORED') {
             $this->setResultCode(self::RES_FAILURE);
@@ -193,8 +210,9 @@ class Client
             return false;
         }
 
-        $this->socketQuery("get {$key}");
-        $resultQuery = $this->socketReadLine();
+        $connection = $this->getConnection();
+        $connection->write("get {$key}");
+        $resultQuery = $connection->readLine();
 
         if (is_null($resultQuery) || substr($resultQuery, 0, 5) !== 'VALUE') {
             $this->setResultCode(self::RES_NOTFOUND);
@@ -206,7 +224,7 @@ class Client
         $line = '';
         while ($line !== 'END') {
             $result .= $line;
-            $line = $this->socketReadLine();
+            $line = $connection->readLine();
         }
 
         $this->setResultCode(self::RES_SUCCESS);
@@ -227,8 +245,9 @@ class Client
             return false;
         }
 
-        $this->socketQuery("delete {$key}");
-        $result = $this->socketReadLine();
+        $connection = $this->getConnection();
+        $connection->write("delete {$key}");
+        $result = $connection->readLine();
 
         if ($result !== 'DELETED') {
             $this->setResultCode(self::RES_FAILURE);
@@ -242,41 +261,12 @@ class Client
     }
 
     /**
-     * Connect to memcached server
-     *
-     * @return  boolean
-     */
-    protected function connect()
-    {
-        $result = false;
-        $server = $this->getServer();
-        $host   = $server['host'];
-        $port   = $server['port'];
-
-        $error = 0;
-        $errstr = '';
-        $result = @fsockopen($host, $port, $error, $errstr);
-
-        if ($result === false) {
-            $this->resultCode = self::RES_CONNECTION_SOCKET_CREATE_FAILURE;
-            $this->resultMessage = "$errstr ($error)";
-            return false;
-        }
-
-        $this->setSocket($result);
-
-        $this->setResultCode(self::RES_SUCCESS);
-        $this->setResultMessage(self::MESSAGE_NOTHING);
-        return true;
-    }
-
-    /**
-     * Prepare value before query socket
+     * Prepare value before query connection
      * 
      * @param  string $value
      * @return string
      */
-    protected function prepareValueForSocket($value)
+    protected function prepareValueForConnection($value)
     {
         return serialize($value);
     }
@@ -319,42 +309,5 @@ class Client
         }
 
         return true;
-    }
-
-    /**
-     * Send data to socket
-     * 
-     * @param  string $query
-     * @return boolean
-     */
-    protected function socketQuery($query)
-    {
-        $socket = $this->getSocket();
-        if ($socket === null) {
-            $this->setResultCode(self::RES_FAILURE);
-            $this->setResultMessage(self::MESSAGE_NOT_FOUND_SOCKET);
-            return false;
-        }
-
-        fwrite($socket, $query . "\r\n");
-
-        return true;
-    }
-
-    /**
-     * Get data from socket
-     * 
-     * @return string
-     */
-    protected function socketReadLine()
-    {
-        $socket = $this->getSocket();
-        if ($socket === null) {
-            $this->setResultCode(self::RES_FAILURE);
-            $this->setResultMessage(self::MESSAGE_NOT_FOUND_SOCKET);
-            return false;
-        }
-
-        return trim(fgets($socket));
     }
 }
