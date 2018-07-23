@@ -7,8 +7,6 @@ For fun.
 
 ## Usage example
 
-::
-
     $m = new Client;
     $m->setServer('localhost', 11211);
 
