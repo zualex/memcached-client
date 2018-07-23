@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/zualex/memcached-client.svg?branch=master)](https://travis-ci.com/zualex/memcached-client)
+
+
 # WHY?
 For fun.
 
