@@ -22,6 +22,7 @@ class Client
     const MESSAGE_KEY_BAD_CHARS    = 'Key include control characters or whitespace. Allow a-Z 0-9 _';
     const MESSAGE_SET_FAIL         = 'Set fail.';
     const MESSAGE_GET_FAIL         = 'Get fail.';
+    const MESSAGE_DELETE_FAIL      = 'Delete fail.';
     const MESSAGE_NOT_FOUND_SOCKET = 'Not found socket.';
 
     /**
@@ -210,6 +211,32 @@ class Client
         $this->setResultMessage(self::MESSAGE_NOTHING);
 
         return $this->prepareValueForApp($result);
+    }
+
+    /**
+     * Delete an item
+     *
+     * @param   string  $key
+     * @return  boolean
+     */
+    public function delete($key)
+    {
+        if ($this->keyIsValid($key) === false) {
+            return false;
+        }
+
+        $this->socketQuery("delete {$key}");
+        $result = $this->socketReadLine();
+
+        if ($result !== 'DELETED') {
+            $this->setResultCode(self::RES_FAILURE);
+            $this->setResultMessage(self::MESSAGE_DELETE_FAIL);
+            return false;
+        }
+
+        $this->setResultCode(self::RES_SUCCESS);
+        $this->setResultMessage(self::MESSAGE_NOTHING);
+        return true;
     }
 
     /**

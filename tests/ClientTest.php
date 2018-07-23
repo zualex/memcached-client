@@ -117,4 +117,28 @@ class ClientTest extends TestCase
         $this->assertEquals($m::RES_BAD_KEY_PROVIDED, $m->getResultCode());
         $this->assertEquals(false, $result);
     }
+
+    public function testDelete()
+    {
+        $m = $this->getObject();
+        $m->set('my_key', 'my_value');
+        $result = $m->delete('my_key');
+
+        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
+        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
+
+        $this->assertEquals(true, $result);
+        $this->assertEquals(null, $m->get('my_key'));
+    }
+
+    public function testDeleteFail()
+    {
+        $m = $this->getObject();
+        $result = $m->delete('my_key');
+
+        $this->assertEquals($m::MESSAGE_DELETE_FAIL, $m->getResultMessage());
+        $this->assertEquals($m::RES_FAILURE, $m->getResultCode());
+
+        $this->assertEquals(false, $result);
+    }
 }
