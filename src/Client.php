@@ -76,6 +76,18 @@ class Client
     protected $connection;
 
     /**
+     * Async
+     *
+     * @var boolean
+     */
+    protected $async;
+
+    public function __construct($async = false)
+    {
+        $this->async = $async;
+    }
+
+    /**
      * Return connection
      *
      * @return ConnectionInterface
@@ -160,7 +172,7 @@ class Client
         ];
 
         try {
-            $connection = new Connection($this->server['host'], $this->server['port']);
+            $connection = new Connection($this->server['host'], $this->server['port'], $this->async);
         } catch (Exception $e) {
             $this->resultCode = self::RES_CONNECTION_SOCKET_CREATE_FAILURE;
             $this->resultMessage = $e->getMessage();

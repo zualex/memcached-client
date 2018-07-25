@@ -7,6 +7,7 @@ use zualex\Memcached\ConnectionInterface;
 
 class Connection implements ConnectionInterface
 {
+    const END_LINE = "\r\n";
 
     /**
      * Socket connect
@@ -23,6 +24,10 @@ class Connection implements ConnectionInterface
 
         if ($result === false) {
             throw new Exception("{$errstr} ({$error})");
+        }
+
+        if ($async === true) {
+            stream_set_blocking($result, 0);
         }
 
         $this->socket = $result;
@@ -62,13 +67,10 @@ class Connection implements ConnectionInterface
      * Send data to socket
      *
      * @param  string $query
-     * @return boolean
+     * @return mixed
      */
     public function write($query)
     {
-
-        fwrite($this->getSocket(), $query . "\r\n");
-
-        return true;
+        return fwrite($this->getSocket(), $query . self::END_LINE);
     }
 }
