@@ -12,8 +12,8 @@ For fun.
 
 ## Usage example
 
-    $m = new Client;
-    $m->setServer('localhost', 11211);
+    $memcached = new Client;
+    $memcached->setServer('localhost', 11211);
 
-    $m->set('foo', 'bar');
-    $m->get('foo');
+    $memcached->set('foo', 'bar');
+    $memcached->get('foo');

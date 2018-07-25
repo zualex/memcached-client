@@ -14,157 +14,157 @@ class ClientTest extends TestCase
 
     protected function getObject()
     {
-        $m = new Client();
-        $m->setServer(self::HOST, self::PORT);
+        $memcached = new Client();
+        $memcached->setServer(self::HOST, self::PORT);
 
-        return $m;
+        return $memcached;
     }
 
     protected function tearDown()
     {
-        $m = $this->getObject();
-        $m->delete(self::KEY_TEST);
+        $memcached = $this->getObject();
+        $memcached->delete(self::KEY_TEST);
     }
 
     public function testSetServer()
     {
-        $m = new Client;
-        $result = $m->setServer(self::HOST, self::PORT);
+        $memcached = new Client;
+        $result = $memcached->setServer(self::HOST, self::PORT);
 
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
         $this->assertEquals(true, $result);
-        $this->assertEquals(['host' => self::HOST, 'port' => self::PORT], $m->getServer());
+        $this->assertEquals(['host' => self::HOST, 'port' => self::PORT], $memcached->getServer());
     }
 
     public function testSetServerFail()
     {
-        $m = new Client;
-        $result = $m->setServer(self::HOST, 223);
+        $memcached = new Client;
+        $result = $memcached->setServer(self::HOST, 223);
 
-        $this->assertEquals('Connection refused (111)', $m->getResultMessage());
-        $this->assertEquals($m::RES_CONNECTION_SOCKET_CREATE_FAILURE, $m->getResultCode());
+        $this->assertEquals('Connection refused (111)', $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_CONNECTION_SOCKET_CREATE_FAILURE, $memcached->getResultCode());
         $this->assertEquals(false, $result);
     }
 
     public function testAddServerDefaultArg()
     {
-        $m = new Client;
-        $m->setServer(self::HOST);
+        $memcached = new Client;
+        $memcached->setServer(self::HOST);
 
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
-        $this->assertEquals(['host' => self::HOST, 'port' => $m::DEFAULT_PORT], $m->getServer());
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
+        $this->assertEquals(['host' => self::HOST, 'port' => $memcached::DEFAULT_PORT], $memcached->getServer());
     }
 
     public function testAddTwoServer()
     {
-        $m = $this->getObject();
-        $m->setServer('127.0.0.1');
+        $memcached = $this->getObject();
+        $memcached->setServer('127.0.0.1');
 
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
-        $this->assertEquals('127.0.0.1', $m->getServer()['host']);
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
+        $this->assertEquals('127.0.0.1', $memcached->getServer()['host']);
     }
 
     public function testSet()
     {
-        $m = $this->getObject();
-        $result = $m->set(self::KEY_TEST, 'my_value');
+        $memcached = $this->getObject();
+        $result = $memcached->set(self::KEY_TEST, 'my_value');
 
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
 
         $this->assertEquals(true, $result);
-        $this->assertEquals('my_value', $m->get(self::KEY_TEST));
+        $this->assertEquals('my_value', $memcached->get(self::KEY_TEST));
     }
 
     public function testSetArray()
     {
-        $m = $this->getObject();
-        $result = $m->set(self::KEY_TEST, ['key' => 1]);
+        $memcached = $this->getObject();
+        $result = $memcached->set(self::KEY_TEST, ['key' => 1]);
 
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
 
         $this->assertEquals(true, $result);
-        $this->assertEquals(['key' => 1], $m->get(self::KEY_TEST));
+        $this->assertEquals(['key' => 1], $memcached->get(self::KEY_TEST));
     }
 
     public function testGetNotExistKey()
     {
-        $m = $this->getObject();
-        $result = $m->get(self::KEY_TEST);
+        $memcached = $this->getObject();
+        $result = $memcached->get(self::KEY_TEST);
 
-        $this->assertEquals($m::MESSAGE_KEY_NOT_FOUND, $m->getResultMessage());
-        $this->assertEquals($m::RES_NOTFOUND, $m->getResultCode());
+        $this->assertEquals($memcached::MESSAGE_KEY_NOT_FOUND, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_NOTFOUND, $memcached->getResultCode());
         $this->assertEquals(false, $result);
     }
 
     public function testKeyMaxLength()
     {
-        $m = $this->getObject();
+        $memcached = $this->getObject();
 
-        $result = $m->set(str_repeat('a', $m::DEFAULT_MAX_KEY_LENGTH), 'max length 250');
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
+        $result = $memcached->set(str_repeat('a', $memcached::DEFAULT_MAX_KEY_LENGTH), 'max length 250');
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
         $this->assertEquals(true, $result);
 
-        $result = $m->set(str_repeat('a', $m::DEFAULT_MAX_KEY_LENGTH + 1), 'max length 250');
-        $this->assertEquals($m::MESSAGE_KEY_MAX_LENGTH, $m->getResultMessage());
-        $this->assertEquals($m::RES_BAD_KEY_PROVIDED, $m->getResultCode());
+        $result = $memcached->set(str_repeat('a', $memcached::DEFAULT_MAX_KEY_LENGTH + 1), 'max length 250');
+        $this->assertEquals($memcached::MESSAGE_KEY_MAX_LENGTH, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_BAD_KEY_PROVIDED, $memcached->getResultCode());
         $this->assertEquals(false, $result);
     }
 
     public function testKeyFail()
     {
-        $m = $this->getObject();
+        $memcached = $this->getObject();
 
-        $result = $m->set('my key', 'space not allowed');
-        $this->assertEquals($m::MESSAGE_KEY_BAD_CHARS, $m->getResultMessage());
-        $this->assertEquals($m::RES_BAD_KEY_PROVIDED, $m->getResultCode());
+        $result = $memcached->set('my key', 'space not allowed');
+        $this->assertEquals($memcached::MESSAGE_KEY_BAD_CHARS, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_BAD_KEY_PROVIDED, $memcached->getResultCode());
         $this->assertEquals(false, $result);
 
-        $result = $m->set(['array'], 'array not allowed');
-        $this->assertEquals($m::MESSAGE_KEY_NOT_STRING, $m->getResultMessage());
-        $this->assertEquals($m::RES_BAD_KEY_PROVIDED, $m->getResultCode());
+        $result = $memcached->set(['array'], 'array not allowed');
+        $this->assertEquals($memcached::MESSAGE_KEY_NOT_STRING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_BAD_KEY_PROVIDED, $memcached->getResultCode());
         $this->assertEquals(false, $result);
 
-        $result = $m->set('my+key', 'not allowed');
-        $this->assertEquals($m::MESSAGE_KEY_BAD_CHARS, $m->getResultMessage());
-        $this->assertEquals($m::RES_BAD_KEY_PROVIDED, $m->getResultCode());
+        $result = $memcached->set('my+key', 'not allowed');
+        $this->assertEquals($memcached::MESSAGE_KEY_BAD_CHARS, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_BAD_KEY_PROVIDED, $memcached->getResultCode());
         $this->assertEquals(false, $result);
     }
 
     public function testDelete()
     {
-        $m = $this->getObject();
-        $m->set(self::KEY_TEST, 'my_value');
-        $result = $m->delete(self::KEY_TEST);
+        $memcached = $this->getObject();
+        $memcached->set(self::KEY_TEST, 'my_value');
+        $result = $memcached->delete(self::KEY_TEST);
 
-        $this->assertEquals($m::MESSAGE_NOTHING, $m->getResultMessage());
-        $this->assertEquals($m::RES_SUCCESS, $m->getResultCode());
+        $this->assertEquals($memcached::MESSAGE_NOTHING, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_SUCCESS, $memcached->getResultCode());
 
         $this->assertEquals(true, $result);
-        $this->assertEquals(null, $m->get(self::KEY_TEST));
+        $this->assertEquals(null, $memcached->get(self::KEY_TEST));
     }
 
     public function testDeleteFail()
     {
-        $m = $this->getObject();
-        $result = $m->delete(self::KEY_TEST);
+        $memcached = $this->getObject();
+        $result = $memcached->delete(self::KEY_TEST);
 
-        $this->assertEquals($m::MESSAGE_DELETE_FAIL, $m->getResultMessage());
-        $this->assertEquals($m::RES_FAILURE, $m->getResultCode());
+        $this->assertEquals($memcached::MESSAGE_DELETE_FAIL, $memcached->getResultMessage());
+        $this->assertEquals($memcached::RES_FAILURE, $memcached->getResultCode());
 
         $this->assertEquals(false, $result);
     }
 
     public function testConnection()
     {
-        $m = new Client();
-        $result = $m->setServer(self::HOST, self::PORT);
+        $memcached = new Client();
+        $result = $memcached->setServer(self::HOST, self::PORT);
 
-        $this->assertEquals(true, $m->getConnection() instanceof Connection);
+        $this->assertEquals(true, $memcached->getConnection() instanceof Connection);
     }
 }
