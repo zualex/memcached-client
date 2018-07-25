@@ -1,12 +1,14 @@
 [![Build Status](https://travis-ci.com/zualex/memcached-client.svg?branch=master)](https://travis-ci.com/zualex/memcached-client)
 
+# PHP memcached client
 
-# WHY?
+## WHY?
 For fun.
 
 ## What is working?
 - Get, set, and delete functions.
 - Key expiration.
+- [ ] Async.
 
 ## Usage example
 
