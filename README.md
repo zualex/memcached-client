@@ -8,7 +8,7 @@ For fun.
 ## What is working?
 - Get, set, and delete functions.
 - Key expiration.
-- [ ] Async.
+- [ ] Async todo.
 
 ## Usage example
 
