@@ -14,7 +14,7 @@ class ClientTest extends TestCase
 
     protected function getObject()
     {
-        $m = new Client($async = true);
+        $m = new Client();
         $m->setServer(self::HOST, self::PORT);
 
         return $m;
