@@ -3,6 +3,7 @@
 namespace zualex\Memcached\tests;
 
 use zualex\Memcached\Client;
+use zualex\Memcached\Connection;
 use PHPUnit\Framework\TestCase;
 
 class ClientTest extends TestCase
@@ -13,7 +14,7 @@ class ClientTest extends TestCase
 
     protected function getObject()
     {
-        $m = new Client;
+        $m = new Client($async = true);
         $m->setServer(self::HOST, self::PORT);
 
         return $m;
@@ -157,5 +158,13 @@ class ClientTest extends TestCase
         $this->assertEquals($m::RES_FAILURE, $m->getResultCode());
 
         $this->assertEquals(false, $result);
+    }
+
+    public function testConnection()
+    {
+        $m = new Client();
+        $result = $m->setServer(self::HOST, self::PORT);
+
+        $this->assertEquals(true, $m->getConnection() instanceof Connection);
     }
 }
